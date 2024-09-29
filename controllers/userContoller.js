@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 const Joi = require('joi')
 
 
-class userController{
+class UserController{
    static async  Register(req, res){
 
     const {name, email, password, countrycode,phonenumber} = req.body;
@@ -76,4 +76,4 @@ class userController{
 
 }
 
-module.exports = userController;
+module.exports = UserController;

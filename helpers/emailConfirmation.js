@@ -12,7 +12,6 @@ async function emailConfirmation( user, url, subject){
                 pass: 'oefb gpie dimt kjri'
             }
         })
-        // let url = `http://localhost:3000/api/auth/verify-user/${user._id}/${token}`
         let name, intro, instructions, buttonText;
         if(url.startsWith('http://localhost:3000/api/auth/verify-user/')){
             name =  'Verify Your email please';
@@ -25,6 +24,11 @@ async function emailConfirmation( user, url, subject){
             intro = "Welcome to AlloMedia We\'re very excited to have you on board";
             instructions = "Use the code mentionned on the Subject to verify that's you",
             buttonText = "Verify that's You"
+        }else if(url.startsWith('http://localhost:3000/api/auth/resetpassword')){
+            name = "Reset Your password";
+            intro = "Welcome to AlloMedia We\'re very excited to have you on board";
+            instructions = "Click on the button below to reset Your password",
+            buttonText = "Rest your password"
         }
         let sender = 'ALLO Media Group';
         let mail = {

@@ -7,6 +7,8 @@ const jwt = require('jsonwebtoken');
 const Joi = require('joi');
 const checkHashedPassword = require('../helpers/checkHashedPassword');
 const OTPGenerator = require('../helpers/OTPGenerator');
+const VerifyJwt = require('../helpers/verifyJwt');
+const { hash } = require('bcryptjs');
 
 
 class UserController{
@@ -66,11 +68,9 @@ class UserController{
     let token = req.params.token;
     let userId = req.params.user_id;
 
-    if(!token || !userId){
-        return res.status(400).json({message: "Your token is expired"});
-    }
+
     try {
-        const verification = jwt.verify(token, `${process.env.TOKEN_SECRET}${userId}`);
+        let verification = await VerifyJwt(token, userId)
         if(verification){
             await User.updateOne({ _id: userId }, { isvalid: true });
             res.status(200).json({ message: 'The token is valid yeyeye' });
@@ -140,7 +140,69 @@ class UserController{
 
 }
 
-    static async 
+    static async forgetpassword(req, res){
+        try{
+            const useremail = req.body.email;
+            const userFound = await User.findOne({email:useremail});
+            if(userFound){
+                let token = await tokenGenerator(userFound, 1);
+                console.log(token);
+                if(token){
+                    let url =`http://localhost:3000/api/auth/resetpassword/${userFound._id}/${token}`;
+                    let subject = 'Reset Your password';
+                    await emailConfirmation(userFound, url, subject);
+                    return res.status(200).json({message: 'email to reset your password is sent successfully'})
+                }
+            }else{
+                return res.status(401).json({message: 'Your Email is not valid'})
+            }
+
+        }catch(e){
+            console.error(e);
+            return res.status(500).json({message: 'The email of forget password is not send successfully'});
+        }
+       
+    }
+
+    static async resetpassword(req, res){
+        let userid = req.params.id;
+        let token = req.params.token;
+        let verification = await VerifyJwt(token,userid);
+        // console.log('verification is',verification);
+        if(verification){
+            // res.status(200).json({message:"Your verification is done, reset ur password"});
+            const {password, confirmPassword} = req.body;
+            const UserScheme = Joi.object({
+                password: Joi.string().min(4).max(30).required().messages({
+                    "string.pattern.base": `Password must be between 3 to 30 characters of characters and numbers`,
+                    "string.empty": `Password cannot be empty`,
+                    "any.required": `Password is required`,
+                  }),
+                confirmPassword: Joi.string().valid(Joi.ref('password')).required().messages({
+                    "any.only": "The two passwords do not match",
+                    "any.required": "Please re-enter the password",
+                  }),
+            });
+            
+            const result = await UserScheme.validate(req.body);
+            if(result.error){
+                console.log(result.error)
+                return res.json({message: result.error})
+            }else{
+                let newPassword = await hashPassword(req.body.password);
+                const user = await User.updateOne({_id:userid}, {password:newPassword});
+                if(user){
+                    return res.status(200).json({message: 'password reseted successfully'});
+                }
+            }
+
+
+        }else{
+            return res.status(400).json({message:"The token is not valid try to verify through the link we sent to ur email"});
+
+        }
+    }
+
 
 
 }

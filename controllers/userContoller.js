@@ -195,8 +195,7 @@ class UserController{
                     return res.status(200).json({message: 'password reseted successfully'});
                 }
             }
-
-
+            
         }else{
             return res.status(400).json({message:"The token is not valid try to verify through the link we sent to ur email"});
 

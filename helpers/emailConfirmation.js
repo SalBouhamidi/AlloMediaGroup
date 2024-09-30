@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer')
 const emailTemplate = require('../helpers/emailTemplate');
-async function emailConfirmation(token, user){
+async function emailConfirmation( user, url, subject){
     try{
         const emailTransport = nodemailer.createTransport({
             service: "gmail",
@@ -12,13 +12,26 @@ async function emailConfirmation(token, user){
                 pass: 'oefb gpie dimt kjri'
             }
         })
-        let url = `http://localhost:3000/api/auth/verify-otp/${user._id}/${token}`
+        // let url = `http://localhost:3000/api/auth/verify-user/${user._id}/${token}`
+        let name, intro, instructions, buttonText;
+        if(url.startsWith('http://localhost:3000/api/auth/verify-user/')){
+            name =  'Verify Your email please';
+            intro = "Welcome to AlloMedia We\'re very excited to have you on board."
+            instructions = "To verify your account, please click here:"
+            buttonText = 'Confirm your account'
+
+        }else if(url.startsWith('http://localhost:3000/api/auth/verify-otp/')){
+            name = "Verify that's You";
+            intro = "Welcome to AlloMedia We\'re very excited to have you on board";
+            instructions = "Use the code mentionned on the Subject to verify that's you",
+            buttonText = "Verify that's You"
+        }
         let sender = 'ALLO Media Group';
         let mail = {
             form: sender,
             to: user.email,
-            subject: "Checking your email",
-            html: emailTemplate(url),
+            subject: subject,
+            html: emailTemplate(url,name, intro,instructions,buttonText),
         }
         emailTransport.sendMail(mail, function(error, response){
             if(error){

@@ -1,6 +1,6 @@
 const mailGen = require('mailgen');
 
-function emailTemplate(url){
+function emailTemplate(url,name, intro,instructions,buttonText){
     let mailGenerator = new mailGen({
         theme: 'cerberus',
         product:{
@@ -10,13 +10,13 @@ function emailTemplate(url){
     });
     let email = {
         body: {
-            name: 'Verify Your email please',
-            intro: 'Welcome to AlloMedia We\'re very excited to have you on board.',
+            name: name,
+            intro: intro,
             action: {
-                instructions: 'To verify your account, please click here:',
+                instructions: instructions,
                 button: {
                     color: '#f564e5',
-                    text: 'Confirm your account',
+                    text: buttonText,
                     link: `${url}`,
                 }
             },

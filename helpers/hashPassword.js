@@ -6,7 +6,7 @@ const hashPassword = async (password) => {
         const passwordhashed = await bcrypt.hash(password, salt);
         return passwordhashed;
     }catch(e){
-        
+        console.log('smth is not working in the hashage',e)
     }
 
 }

@@ -7,7 +7,12 @@ app.set('port', port);
 
 const server = http.createServer(app);
 
-server.listen(port,()=>{
-    console.log(`server is running ${port}`)
-})
+try{
+    server.listen(port,()=>{
+        console.log(`server is running ${port}`)
+    })
+}catch(e){
+    console.error(e);
+}
+
 

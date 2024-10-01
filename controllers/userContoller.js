@@ -69,8 +69,6 @@ class userController{
    static async VerifyToken(req,res){
     let token = req.params.token;
     let userId = req.params.user_id;
-
-
     try {
         let verification = await VerifyJwt(token, userId)
         if(verification){
@@ -102,6 +100,7 @@ class userController{
             let url = `http://localhost:3000/api/auth/verify-otp/${userFound._id}/${code}`, 
             subject = `Your Verifictaion code is ${otpgenerator.otpCode}`
             let ConfirmOtp = await emailConfirmation( userFound, url, subject);
+            req.session.user = {userFound}
             res.status(200).json({message: 'user successfully loged'})
 
         }
@@ -202,6 +201,11 @@ class userController{
             return res.status(400).json({message:"The token is not valid try to verify through the link we sent to ur email"});
 
         }
+    }
+
+    static async Logout(req, res){
+        req.session.destroy();
+        return res.json({message: 'the User is Loged out'});
     }
 
 

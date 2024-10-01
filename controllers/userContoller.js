@@ -11,7 +11,7 @@ const VerifyJwt = require('../helpers/verifyJwt');
 const { hash } = require('bcryptjs');
 
 
-class UserController{
+class userController{
    static async  Register(req, res){
 
     const {name, email, password, countrycode,phonenumber} = req.body;
@@ -28,7 +28,7 @@ class UserController{
     const result = await UserScheme.validate(req.body);
     if(result.error){
         console.log(result.error)
-        return res.json({message: result.error})
+        return res.status(400).json({message: result.error.details[0].message})
     }
 
     try{
@@ -56,7 +56,9 @@ class UserController{
 
         }
     }catch(e){
-        // console.error('error is',e._message, 'beacause',e.path, 'need to be or is', e.kind);
+        if(e.code == 11000){
+            return res.status(400).json({ message: 'Email already exists' });
+        }
         console.error(e)
         return res.status(200).json('smth bad happend ')
 
@@ -187,7 +189,7 @@ class UserController{
             const result = await UserScheme.validate(req.body);
             if(result.error){
                 console.log(result.error)
-                return res.json({message: result.error})
+                return res.json({message: result.error.details[0].message})
             }else{
                 let newPassword = await hashPassword(req.body.password);
                 const user = await User.updateOne({_id:userid}, {password:newPassword});
@@ -206,4 +208,4 @@ class UserController{
 
 }
 
-module.exports = UserController;
+module.exports = userController;

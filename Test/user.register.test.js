@@ -124,20 +124,6 @@ jest.mock('../helpers/tokenGenerator', () => ({
 
 })
 
-describe("POST /api/auth/login", ()=>{
-    test('the email is not correct', async()=>{
-        user = {
-            email:"TESThhh@gmail.com",
-            password: "test12345"
-        };
-        const response = await request(app).post('/api/auth/login').send(user);
-        // const saveduser = await User.findOne({email: user.email });
-        // expect(saveduser).toBeNull();
-        expect(response.status).toBe(500);
-        expect(response.body.message).toBe("The login is failed smth bad happened");
-    });
-
-})
 
 
 

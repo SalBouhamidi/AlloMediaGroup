@@ -100,6 +100,7 @@ class userController{
             let url = `http://localhost:3000/api/auth/verify-otp/${userFound._id}/${code}`, 
             subject = `Your Verifictaion code is ${otpgenerator.otpCode}`
             let ConfirmOtp = await emailConfirmation( userFound, url, subject);
+            console.log(ConfirmOtp);
             req.session.user = {userFound}
             res.status(200).json({message: 'user successfully loged'})
 

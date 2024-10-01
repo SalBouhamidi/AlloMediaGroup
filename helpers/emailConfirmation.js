@@ -40,14 +40,16 @@ async function emailConfirmation( user, url, subject){
         emailTransport.sendMail(mail, function(error, response){
             if(error){
                 console.log(error);
+                response = "error"
                 return response;
             }else{
-                console.log('message sent')
+                console.log('message sent');
+                response = "sent"
                 return response;
             }
         })
-
-
+        let result = "sent"
+        return result
     }catch(e){
         console.log(e);
     }

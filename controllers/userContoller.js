@@ -169,39 +169,51 @@ class userController{
     static async resetpassword(req, res){
         let userid = req.params.id;
         let token = req.params.token;
-        let verification = await VerifyJwt(token,userid);
-        // console.log('verification is',verification);
-        if(verification){
-            // res.status(200).json({message:"Your verification is done, reset ur password"});
-            const {password, confirmPassword} = req.body;
-            const UserScheme = Joi.object({
-                password: Joi.string().min(4).max(30).required().messages({
-                    "string.pattern.base": `Password must be between 3 to 30 characters of characters and numbers`,
-                    "string.empty": `Password cannot be empty`,
-                    "any.required": `Password is required`,
-                  }),
-                confirmPassword: Joi.string().valid(Joi.ref('password')).required().messages({
-                    "any.only": "The two passwords do not match",
-                    "any.required": "Please re-enter the password",
-                  }),
-            });
-            
-            const result = await UserScheme.validate(req.body);
-            if(result.error){
-                console.log(result.error)
-                return res.json({message: result.error.details[0].message})
-            }else{
-                let newPassword = await hashPassword(req.body.password);
-                const user = await User.updateOne({_id:userid}, {password:newPassword});
-                if(user){
-                    return res.status(200).json({message: 'password reseted successfully'});
+        try{
+            let verification = await VerifyJwt(token,userid);
+            if(verification){
+                const {password, confirmPassword} = req.body;
+                const UserScheme = Joi.object({
+                    password: Joi.string().min(4).max(30).required().messages({
+                        "string.pattern.base": `Password must be between 3 to 30 characters of characters and numbers`,
+                        "string.empty": `Password cannot be empty`,
+                        "any.required": `Password is required`,
+                      }),
+                    confirmPassword: Joi.string().valid(Joi.ref('password')).required().messages({
+                        "any.only": "The two passwords do not match",
+                        "any.required": "Please re-enter the password",
+                      }),
+                });
+                
+                const result = await UserScheme.validate(req.body);
+                if(result.error){
+                    console.log(result.error)
+                    return res.json({message: result.error.details[0].message})
+                }else{
+                    let newPassword = await hashPassword(req.body.password);
+                    const user = await User.updateOne({_id:userid}, {password:newPassword});
+                    if(user){
+                        return res.status(200).json({message: 'password reseted successfully'});
+                    }else{
+                        return res.status(400).json({message: 'password isn\'t reseted '});
+
+                    }
                 }
+                
+            }else{
+               
+                return res.status(400).json({message:"The token is not valid try to verify through the link we sent to ur email"});
+    
             }
-            
-        }else{
-            return res.status(400).json({message:"The token is not valid try to verify through the link we sent to ur email"});
+        }catch(e){
+            console.log(e);
+            if (e.name === 'TokenExpiredError') {
+                return res.status(400).json({message:"The token is not expired"});
+            }
+            return res.status(400).json({message:"The token is not valid"});
 
         }
+ 
     }
 
     static async Logout(req, res){

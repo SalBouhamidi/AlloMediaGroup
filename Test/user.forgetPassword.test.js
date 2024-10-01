@@ -24,7 +24,7 @@ describe("POST /auth/forgetpassword", ()=>{
         email = "Testyyyyy@gmail.com"
         const response = await request(app).post('/api/auth/forgetpassword').send(email);
         const user = await User.findOne({email:email});
-        expect(user).toBeNull()
+        expect(user).toBeNull();
         expect(response.status).toBe(401);
         expect(response.body.message).toBe("Your Email is not valid");
   });
@@ -50,6 +50,6 @@ describe("POST /auth/forgetpassword", ()=>{
     expect(result).toBe("sent");
     expect(response.status).toBe(200);
     expect(response.body.message).toBe("email to reset your password is sent successfully");
-
   })
+
 })

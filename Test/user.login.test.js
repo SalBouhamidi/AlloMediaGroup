@@ -51,7 +51,7 @@ describe("POST /api/auth/login", ()=>{
 
     test("valid email and password",async()=>{
         user = {
-            email: "bouhamidi.sal@gmail.com",
+            email: "test@gmail.com",
             password: 'test12345'
         };
         const response = await request(app).post('/api/auth/login').send(user);
@@ -86,6 +86,7 @@ describe("POST /api/auth/login", ()=>{
         expect(saveduser).not.toBeNull();
         await checkHashedPassword(user.password, saveduser.password);
         let otpgenerator =  await OTPGenerator(saveduser);
+        console.log("otp codddddddde",otpgenerator);
         expect(otpgenerator).not.toBeNull();
         let code = btoa(`${otpgenerator.otpCode}/${otpgenerator.expiresIn}`);
         expect(code).not.toBeNull();

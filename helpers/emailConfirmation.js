@@ -43,7 +43,6 @@ async function emailConfirmation( user, url, subject){
                 response = "error"
                 return response;
             }else{
-                console.log('message sent');
                 response = "sent"
                 return response;
             }

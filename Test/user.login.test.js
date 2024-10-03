@@ -16,7 +16,7 @@ describe("POST /api/auth/login", ()=>{
 
     beforeEach(() => {
         const app = express();
-        app.post("/api/auth/register");
+        app.post("/api/auth/login");
         request(app);
   });
 

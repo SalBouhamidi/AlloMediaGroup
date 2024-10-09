@@ -13,6 +13,7 @@ const { hash } = require('bcryptjs');
 
 class userController{
    static async  Register(req, res){
+    console.log('i m here in controller')
 
     const {name, email, password, countrycode,phonenumber} = req.body;
     const UserScheme = Joi.object({
@@ -44,6 +45,7 @@ class userController{
             isvalid: false,
         })
         await user.save();
+        console.log(user);
         if(user){
             const token = await tokenGenerator(user, 10);
             console.log(token);
@@ -88,7 +90,7 @@ class userController{
         if(!userFound){
             return res.status(401).json({message: 'invalid email or password'})
         }
-
+        localStorage.getItem("email",userFound.email);
         let passwordCheck = await checkHashedPassword(password, userFound.password);
         if(!passwordCheck){
             return res.status(401).json({message: 'invalid email or password'})
@@ -97,13 +99,12 @@ class userController{
         console.log(otpgenerator);
         if(otpgenerator){
             let code = btoa(`${otpgenerator.otpCode}/${otpgenerator.expiresIn}`);
-            let url = `http://localhost:3000/api/auth/verify-otp/${userFound._id}/${code}`, 
+            let url = `http://localhost:5173/verify-email/${userFound._id}/${code}`, 
             subject = `Your Verifictaion code is ${otpgenerator.otpCode}`
             let ConfirmOtp = await emailConfirmation( userFound, url, subject);
             console.log(ConfirmOtp);
             req.session.user = {userFound}
-            res.status(200).json({message: 'user successfully loged'})
-
+            res.status(200).json({message: 'user successfully loged now check ur email'})
         }
 
     }catch(e){
@@ -112,11 +113,14 @@ class userController{
     }
    }
 
+
+
    static async verifyOTP(req, res) {
     let userId = req.params.id;
     let user = await User.findOne({_id:userId});
     try{
         if(user){
+            // console.log('otp from uel',req.params.otpCode);
             let code = atob(req.params.otpCode);
             let otp = code.split("/");
             if(!otp[0]){
@@ -125,13 +129,13 @@ class userController{
             if(Date.now() > otp[1]){
                 return res.status(401).json({message:'Your code was expired, please login again to ur account'})
             }
-            if(otp[0] !== req.body.code){
+            if(otp[0] !== req.body.otpcode){
                 return res.status(401).json({message:'Your code is not correct'});
             }else{
                 return res.status(200).json({message:'Your code is correct'});
             }
         }else if(!user){
-            return res.status(401).json({message:'Please try to login in again'})
+            return res.status(401).json({message:'Your not found,Please try to login in again'})
         }
 
     }catch(e){

@@ -95,21 +95,28 @@ class userController{
         if(!passwordCheck){
             return res.status(401).json({message: 'invalid email or password'})
         }
-        let otpgenerator =  await OTPGenerator(userFound);
-        console.log(otpgenerator);
-        if(otpgenerator){
-            let code = btoa(`${otpgenerator.otpCode}/${otpgenerator.expiresIn}`);
-            let url = `http://localhost:5173/verify-email/${userFound._id}/${code}`, 
-            subject = `Your Verifictaion code is ${otpgenerator.otpCode}`
-            let ConfirmOtp = await emailConfirmation( userFound, url, subject);
-            console.log(ConfirmOtp);
-            req.session.user = {userFound}
-            res.status(200).json({message: 'user successfully loged now check ur email'})
-        }
+        await sendOtp(userFound);
+
 
     }catch(e){
         console.error(e);
         return res.status(500).json({message: 'The login is failed smth bad happened'})
+    }
+   }
+
+   static async sendOtp(userFound){
+    let otpgenerator =  await OTPGenerator(userFound);
+    console.log(otpgenerator);
+    if(otpgenerator){
+        let code = btoa(`${otpgenerator.otpCode}/${otpgenerator.expiresIn}`);
+        let url = `http://localhost:5173/verify-email/${userFound._id}/${code}`, 
+        subject = `Your Verifictaion code is ${otpgenerator.otpCode}`
+        let ConfirmOtp = await emailConfirmation( userFound, url, subject);
+        console.log(ConfirmOtp);
+        req.session.user = {userFound}
+        res.status(200).json({message: 'user successfully loged now check ur email'})
+    }else if (!otpgenerator){
+        res.status(200).json({message: 'Please try to login again'})
     }
    }
 

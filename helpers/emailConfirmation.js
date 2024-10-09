@@ -19,7 +19,7 @@ async function emailConfirmation( user, url, subject){
             instructions = "To verify your account, please click here:"
             buttonText = 'Confirm your account'
 
-        }else if(url.startsWith('http://localhost:3000/api/auth/verify-otp/')){
+        }else if(url.startsWith('http://localhost:5173/verify-email/')){
             name = "Verify that's You";
             intro = "Welcome to AlloMedia We\'re very excited to have you on board";
             instructions = "Use the code mentionned on the Subject to verify that's you",

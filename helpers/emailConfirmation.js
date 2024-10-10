@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer')
 const emailTemplate = require('../helpers/emailTemplate');
-async function emailConfirmation( user, url, subject){
+async function emailConfirmation( email, url, subject){
     try{
         const emailTransport = nodemailer.createTransport({
             service: "gmail",
@@ -19,12 +19,12 @@ async function emailConfirmation( user, url, subject){
             instructions = "To verify your account, please click here:"
             buttonText = 'Confirm your account'
 
-        }else if(url.startsWith('http://localhost:3000/api/auth/verify-otp/')){
+        }else if(url.startsWith('http://localhost:5173/verify-email/')){
             name = "Verify that's You";
             intro = "Welcome to AlloMedia We\'re very excited to have you on board";
             instructions = "Use the code mentionned on the Subject to verify that's you",
             buttonText = "Verify that's You"
-        }else if(url.startsWith('http://localhost:3000/api/auth/resetpassword')){
+        }else if(url.startsWith('http://localhost:5173/resetpassword/')){
             name = "Reset Your password";
             intro = "Welcome to AlloMedia We\'re very excited to have you on board";
             instructions = "Click on the button below to reset Your password",
@@ -33,7 +33,7 @@ async function emailConfirmation( user, url, subject){
         let sender = 'ALLO Media Group';
         let mail = {
             form: sender,
-            to: user.email,
+            to: email,
             subject: subject,
             html: emailTemplate(url,name, intro,instructions,buttonText),
         }
@@ -50,7 +50,7 @@ async function emailConfirmation( user, url, subject){
         let result = "sent"
         return result
     }catch(e){
-        console.log(e);
+        console.log("something isn't working in email confirmation",e);
     }
 
 }

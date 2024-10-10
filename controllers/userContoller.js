@@ -6,7 +6,8 @@ const emailConfirmation = require('../helpers/emailConfirmation');
 const jwt = require('jsonwebtoken');
 const Joi = require('joi');
 const checkHashedPassword = require('../helpers/checkHashedPassword');
-const OTPGenerator = require('../helpers/OTPGenerator');
+// const OTPGenerator = require('../helpers/OTPGenerator');
+const sendOtp = require('../helpers/sendOtp');
 const VerifyJwt = require('../helpers/verifyJwt');
 const { hash } = require('bcryptjs');
 
@@ -90,35 +91,38 @@ class userController{
         if(!userFound){
             return res.status(401).json({message: 'invalid email or password'})
         }
-        localStorage.getItem("email",userFound.email);
         let passwordCheck = await checkHashedPassword(password, userFound.password);
         if(!passwordCheck){
             return res.status(401).json({message: 'invalid email or password'})
         }
-        await sendOtp(userFound);
 
-
+        let response = await sendOtp(res,userFound._id, userFound.email);
+        // console.log(response);
     }catch(e){
         console.error(e);
         return res.status(500).json({message: 'The login is failed smth bad happened'})
     }
    }
 
-   static async sendOtp(userFound){
-    let otpgenerator =  await OTPGenerator(userFound);
-    console.log(otpgenerator);
-    if(otpgenerator){
-        let code = btoa(`${otpgenerator.otpCode}/${otpgenerator.expiresIn}`);
-        let url = `http://localhost:5173/verify-email/${userFound._id}/${code}`, 
-        subject = `Your Verifictaion code is ${otpgenerator.otpCode}`
-        let ConfirmOtp = await emailConfirmation( userFound, url, subject);
-        console.log(ConfirmOtp);
-        req.session.user = {userFound}
-        res.status(200).json({message: 'user successfully loged now check ur email'})
-    }else if (!otpgenerator){
-        res.status(200).json({message: 'Please try to login again'})
-    }
+   static async resendCode (req,res){
+        let userId = req.params.id
+        // console.log('####id',userId);
+        let UserFound = await User.findOne({_id:userId});
+        // console.log('**********',UserFound);
+        if(UserFound){
+            let response = await sendOtp(res, UserFound._id, UserFound.email);
+            if(response.success){
+                return res.status(201).json({message: response.message});
+            }else{
+                return res.status(401).json({message: response.message});
+            }
+
+        }else{
+            return res.status(401).json({message: "Please try to login or Try later"});
+        }
    }
+
+
 
 
 
@@ -159,11 +163,10 @@ class userController{
             const userFound = await User.findOne({email:useremail});
             if(userFound){
                 let token = await tokenGenerator(userFound, 1);
-                console.log(token);
                 if(token){
-                    let url =`http://localhost:3000/api/auth/resetpassword/${userFound._id}/${token}`;
+                    let url =`http://localhost:5173/resetpassword/${userFound._id}/${token}`;
                     let subject = 'Reset Your password';
-                    await emailConfirmation(userFound, url, subject);
+                    let sendEmail = await emailConfirmation(userFound.email, url, subject);
                     return res.status(200).json({message: 'email to reset your password is sent successfully'})
                 }
             }else{
@@ -180,14 +183,17 @@ class userController{
     static async resetpassword(req, res){
         let userid = req.params.id;
         let token = req.params.token;
+        // console.log('*****',token);
+        // console.log('*****', userid);
         try{
             let verification = await VerifyJwt(token,userid);
             if(verification){
-                const {password, confirmPassword} = req.body;
+                let {password, confirmPassword} = req.body;
+                // console.log('***', req.body.confirmPassword);
+                
                 const UserScheme = Joi.object({
                     password: Joi.string().min(4).max(30).required().messages({
                         "string.pattern.base": `Password must be between 3 to 30 characters of characters and numbers`,
-                        "string.empty": `Password cannot be empty`,
                         "any.required": `Password is required`,
                       }),
                     confirmPassword: Joi.string().valid(Joi.ref('password')).required().messages({
@@ -207,7 +213,6 @@ class userController{
                         return res.status(200).json({message: 'password reseted successfully'});
                     }else{
                         return res.status(400).json({message: 'password isn\'t reseted '});
-
                     }
                 }
                 
@@ -231,6 +236,8 @@ class userController{
         req.session.destroy();
         return res.json({message: 'the User is Loged out'});
     }
+
+
 
 
 

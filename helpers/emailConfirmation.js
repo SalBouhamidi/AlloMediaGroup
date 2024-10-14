@@ -13,7 +13,7 @@ async function emailConfirmation( email, url, subject){
             }
         })
         let name, intro, instructions, buttonText;
-        if(url.startsWith('http://localhost:3000/api/auth/verify-user/')){
+        if(url.startsWith('http://localhost:5173/verify/')){
             name =  'Verify Your email please';
             intro = "Welcome to AlloMedia We\'re very excited to have you on board."
             instructions = "To verify your account, please click here:"

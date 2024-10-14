@@ -14,8 +14,6 @@ const { hash } = require('bcryptjs');
 
 class userController{
    static async  Register(req, res){
-    console.log('i m here in controller')
-
     const {name, email, password, countrycode,phonenumber} = req.body;
     const UserScheme = Joi.object({
         name: Joi.string().min(3).required().messages(),
@@ -50,9 +48,9 @@ class userController{
         if(user){
             const token = await tokenGenerator(user, 10);
             console.log(token);
-            let url = `http://localhost:3000/api/auth/verify-user/${user._id}/${token}`
+            let url = `http://localhost:5173/verify/${user._id}/${token}`
             let subject = "checking If Your email is valid"
-            await emailConfirmation( user, url, subject)
+            await emailConfirmation( user.email, url, subject)
             res.status(201).json({ message: 'User registered successfully' });
         }else{
             res.status(500).json({ error: 'Internal server error' });
@@ -88,16 +86,25 @@ class userController{
     try{
         const {email, password} = req.body;
         const userFound = await User.findOne({email:email});
+        // console.log(userFound.isvalid)
         if(!userFound){
             return res.status(401).json({message: 'invalid email or password'})
         }
+
         let passwordCheck = await checkHashedPassword(password, userFound.password);
         if(!passwordCheck){
             return res.status(401).json({message: 'invalid email or password'})
         }
+        if(userFound.isvalid == false){
+            const token = await tokenGenerator(userFound, 10);
+            let url = `http://localhost:5173/verify/${userFound._id}/${token}`
+            let subject = "checking If Your email is valid"
+            await emailConfirmation( userFound.email, url, subject)
+            return res.status(201).json({ message: 'Email is verified try to login again' });
+        }
 
         let response = await sendOtp(res,userFound._id, userFound.email);
-        // console.log(response);
+        return res.status(201).json({message: 'User logged successfully, kindly check ur OTP code in your email'})
     }catch(e){
         console.error(e);
         return res.status(500).json({message: 'The login is failed smth bad happened'})
@@ -106,9 +113,7 @@ class userController{
 
    static async resendCode (req,res){
         let userId = req.params.id
-        // console.log('####id',userId);
         let UserFound = await User.findOne({_id:userId});
-        // console.log('**********',UserFound);
         if(UserFound){
             let response = await sendOtp(res, UserFound._id, UserFound.email);
             if(response.success){
@@ -183,14 +188,10 @@ class userController{
     static async resetpassword(req, res){
         let userid = req.params.id;
         let token = req.params.token;
-        // console.log('*****',token);
-        // console.log('*****', userid);
         try{
             let verification = await VerifyJwt(token,userid);
             if(verification){
                 let {password, confirmPassword} = req.body;
-                // console.log('***', req.body.confirmPassword);
-                
                 const UserScheme = Joi.object({
                     password: Joi.string().min(4).max(30).required().messages({
                         "string.pattern.base": `Password must be between 3 to 30 characters of characters and numbers`,

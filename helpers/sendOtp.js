@@ -6,14 +6,11 @@ const OTPGenerator = require('./OTPGenerator');
 async function sendOtp(res, id, email){
 
     let otpgenerator =  await OTPGenerator();
-    // console.log(otpgenerator);
     if(otpgenerator){
         let code = btoa(`${otpgenerator.otpCode}/${otpgenerator.expiresIn}`);
         let url = `http://localhost:5173/verify-email/${id}/${code}`, 
         subject = `Your Verifictaion code is ${otpgenerator.otpCode}`
         let ConfirmOtp = await emailConfirmation(email, url, subject);
-        // console.log(ConfirmOtp);
-        // return res.status(200).json({message: 'user successfully loged now check ur email'})
         if(ConfirmOtp){
             return { success: true, message: 'Kindly check ur email and verify your account' };
         }else{

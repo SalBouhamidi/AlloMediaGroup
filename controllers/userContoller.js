@@ -10,6 +10,7 @@ const checkHashedPassword = require('../helpers/checkHashedPassword');
 const sendOtp = require('../helpers/sendOtp');
 const VerifyJwt = require('../helpers/verifyJwt');
 const { hash } = require('bcryptjs');
+const Role = require('../Models/role')
 
 
 class userController{
@@ -33,6 +34,8 @@ class userController{
 
     try{
         const hashedPassword = await hashPassword(password);
+        let userRole = await Role.findOne({role:'user'});
+        console.log(userRole);
         const user = await new User({
             name: name,
             email: email,
@@ -42,7 +45,9 @@ class userController{
                 phonenumber: phonenumber
             }],
             isvalid: false,
+            role: [userRole]
         })
+
         await user.save();
         console.log(user);
         if(user){
@@ -54,7 +59,6 @@ class userController{
             res.status(201).json({ message: 'User registered successfully' });
         }else{
             res.status(500).json({ error: 'Internal server error' });
-
         }
     }catch(e){
         if(e.code == 11000){
@@ -86,7 +90,6 @@ class userController{
     try{
         const {email, password} = req.body;
         const userFound = await User.findOne({email:email});
-        // console.log(userFound.isvalid)
         if(!userFound){
             return res.status(401).json({message: 'invalid email or password'})
         }
@@ -95,6 +98,7 @@ class userController{
         if(!passwordCheck){
             return res.status(401).json({message: 'invalid email or password'})
         }
+        // console.log('is his account valid', userFound.isvalid);
         if(userFound.isvalid == false){
             const token = await tokenGenerator(userFound, 10);
             let url = `http://localhost:5173/verify/${userFound._id}/${token}`
@@ -104,6 +108,7 @@ class userController{
         }
 
         let response = await sendOtp(res,userFound._id, userFound.email);
+        console.log(response);
         return res.status(201).json({message: 'User logged successfully, kindly check ur OTP code in your email'})
     }catch(e){
         console.error(e);
@@ -167,7 +172,7 @@ class userController{
             const useremail = req.body.email;
             const userFound = await User.findOne({email:useremail});
             if(userFound){
-                let token = await tokenGenerator(userFound, 1);
+                let token = await tokenGenerator(userFound, 72);
                 if(token){
                     let url =`http://localhost:5173/resetpassword/${userFound._id}/${token}`;
                     let subject = 'Reset Your password';
@@ -177,7 +182,6 @@ class userController{
             }else{
                 return res.status(401).json({message: 'Your Email is not valid'})
             }
-
         }catch(e){
             console.error(e);
             return res.status(500).json({message: 'The email of forget password is not send successfully'});
@@ -191,7 +195,7 @@ class userController{
         try{
             let verification = await VerifyJwt(token,userid);
             if(verification){
-                let {password, confirmPassword} = req.body;
+                const {password, confirmPassword} = req.body;
                 const UserScheme = Joi.object({
                     password: Joi.string().min(4).max(30).required().messages({
                         "string.pattern.base": `Password must be between 3 to 30 characters of characters and numbers`,
@@ -217,10 +221,8 @@ class userController{
                     }
                 }
                 
-            }else{
-               
+            }else{         
                 return res.status(400).json({message:"The token is not valid try to verify through the link we sent to ur email"});
-    
             }
         }catch(e){
             console.log(e);

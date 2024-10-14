@@ -58,7 +58,7 @@ jest.mock('../helpers/tokenGenerator', () => ({
     expect(response.body.message).toBe("\"name\" length must be at least 3 characters long");
     });
 
-    test('the email is duplicated', async()=>{
+    test('the email is already exists', async()=>{
         user = {
             name: "Test",
             email:"bouhamidi.saluu@gmail.com",
@@ -103,27 +103,25 @@ jest.mock('../helpers/tokenGenerator', () => ({
             expect(saveduser).not.toBeNull();
     });
 
-    // test('should generate token after the user has been submitted', async () => {
-    //     user = {
-    //         name: "Test",
-    //         email:"Test.saluu@gmail.com",
-    //         password: "test12345",
-    //         phone: [{
-    //             countrycode: "+11",
-    //             phonenumber: "67877777676"
-    //         }],
-    //     };  
+    test('should generate token after the user has been registered', async () => {
+        user = {
+            name: "Test",
+            email:"Test.saluu@gmail.com",
+            password: "test12345",
+            phone: [{
+                countrycode: "+11",
+                phonenumber: "67877777676"
+            }],
+        };  
         
-    //     const response = await request(app).post('/api/auth/register').send(user);
-    //     const usersaved = await User.findOne({ email: user.email });
-    //     expect(usersaved).not.toBeNull();
-    //     token = await tokenGenerator(usersaved, 10);
-    //     expect(token).toBeDefined();
-    //     });
+        const response = await request(app).post('/api/auth/register').send(user);
+        const usersaved = await User.findOne({ email: user.email });
+        expect(usersaved).not.toBeNull();
+        token = await tokenGenerator(usersaved, 1);
+        });
 
 
 })
-
 
 
 

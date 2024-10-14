@@ -98,7 +98,7 @@ class userController{
         if(!passwordCheck){
             return res.status(401).json({message: 'invalid email or password'})
         }
-        // console.log('is his account valid', userFound.isvalid);
+
         if(userFound.isvalid == false){
             const token = await tokenGenerator(userFound, 10);
             let url = `http://localhost:5173/verify/${userFound._id}/${token}`
@@ -109,7 +109,7 @@ class userController{
 
         let response = await sendOtp(res,userFound._id, userFound.email);
         console.log(response);
-        return res.status(201).json({message: 'User logged successfully, kindly check ur OTP code in your email'})
+        return res.status(201).json({message: 'User logged successfully, kindly check ur OTP code in your email', userFound})
     }catch(e){
         console.error(e);
         return res.status(500).json({message: 'The login is failed smth bad happened'})
@@ -234,6 +234,8 @@ class userController{
         }
  
     }
+
+    
 
     static async Logout(req, res){
         req.session.destroy();

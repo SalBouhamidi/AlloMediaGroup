@@ -1,4 +1,5 @@
 const { default: mongoose } = require('mongoose')
+const Role = require('./role');
 const Schema = mongoose.Schema;
 
 
@@ -35,6 +36,7 @@ const userSchema = new Schema({
         type:Date,
         default: Date.now(),
     },
+    role: [{ type: Schema.Types.ObjectId, ref: 'Role' }]
 
 })
 

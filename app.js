@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const session = require('express-session');
 
+
 const apiUserroutes = require('./routes/api/authApi');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
